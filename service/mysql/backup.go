@@ -41,6 +41,7 @@ func Backup(ctx context.Context, s3 *s3.Client, service util.Service, binding *c
 	command = append(command, "--single-transaction")
 	command = append(command, "--quick")
 	command = append(command, "--skip-add-locks")
+	command = append(command, "--hex-blob=TRUE")
 	command = append(command, "-h")
 	command = append(command, credentials.Hostname)
 	command = append(command, "-P")
