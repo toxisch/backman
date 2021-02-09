@@ -18,7 +18,7 @@ run:
 .PHONY: gin
 ## gin: runs main.go via gin (hot reloading)
 gin:
-	gin --all --immediate run main.go
+	source .env; source .env_*; gin --all --immediate run main.go
 
 .PHONY: build
 ## build: builds the application
@@ -40,7 +40,7 @@ install:
 
 .PHONY: test
 ## test: runs go test with the race detector
-test:
+test: build
 	@source .env; GOARCH=amd64 GOOS=linux go test -v -race ./...
 
 .PHONY: init
@@ -51,8 +51,8 @@ init:
 
 .PHONY: docker-build
 ## docker-build: builds docker image
-docker-build: build
-	docker build -t jamesclonk/${APP}:${COMMIT_SHA} .
+docker-build: clean build
+	docker build -t jamesclonk/${APP}:${COMMIT_SHA} $$PWD
 
 .PHONY: docker-push
 ## docker-push: pushes docker image to dockerhub

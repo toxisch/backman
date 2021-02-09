@@ -41,6 +41,10 @@ func Backup(ctx context.Context, s3 *s3.Client, service util.Service, binding *c
 	command = append(command, "--single-transaction")
 	command = append(command, "--quick")
 	command = append(command, "--skip-add-locks")
+	// https://serverfault.com/questions/912162/mysqldump-throws-unknown-table-column-statistics-in-information-schema-1109
+	if service.DisableColumnStatistics {
+		command = append(command, "--column-statistics=0")
+	}
 	command = append(command, "--hex-blob=TRUE")
 	command = append(command, "-h")
 	command = append(command, credentials.Hostname)
@@ -49,7 +53,7 @@ func Backup(ctx context.Context, s3 *s3.Client, service util.Service, binding *c
 	command = append(command, "-u")
 	command = append(command, credentials.Username)
 	if len(credentials.Database) > 0 {
-		command = append(command, "--databases")
+		command = append(command, "--no-create-db")
 		command = append(command, credentials.Database)
 	} else {
 		command = append(command, "--all-databases")

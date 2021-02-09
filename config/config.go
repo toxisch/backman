@@ -16,21 +16,24 @@ var (
 )
 
 type Config struct {
-	LogLevel         string `json:"log_level"`
-	LoggingTimestamp bool   `json:"logging_timestamp"`
-	Username         string
-	Password         string
-	DisableWeb       bool `json:"disable_web"`
-	DisableMetrics   bool `json:"disable_metrics"`
-	S3               S3Config
-	Services         map[string]ServiceConfig
-	Foreground       bool
+	LogLevel           string `json:"log_level"`
+	LoggingTimestamp   bool   `json:"logging_timestamp"`
+	Username           string
+	Password           string
+	DisableWeb         bool `json:"disable_web"`
+	DisableMetrics     bool `json:"disable_metrics"`
+	UnprotectedMetrics bool `json:"unprotected_metrics"`
+	S3                 S3Config
+	Services           map[string]ServiceConfig
+	Foreground         bool
 }
 
 type S3Config struct {
-	DisableSSL   bool   `json:"disable_ssl"`
-	ServiceLabel string `json:"service_label"`
-	BucketName   string `json:"bucket_name"`
+	DisableSSL    bool   `json:"disable_ssl"`
+	ServiceLabel  string `json:"service_label"`
+	ServiceName   string `json:"service_name"`
+	BucketName    string `json:"bucket_name"`
+	EncryptionKey string `json:"encryption_key"`
 }
 
 type ServiceConfig struct {
@@ -40,6 +43,8 @@ type ServiceConfig struct {
 		Days  int
 		Files int
 	}
+	DisableColumnStatistics bool   `json:"disable_column_statistics"`
+	LocalBackupPath         string `json:"local_backup_path"`
 }
 
 type TimeoutDuration struct {
@@ -119,14 +124,23 @@ func Get() *Config {
 			if envConfig.DisableMetrics {
 				config.DisableMetrics = envConfig.DisableMetrics
 			}
+			if envConfig.UnprotectedMetrics {
+				config.UnprotectedMetrics = envConfig.UnprotectedMetrics
+			}
 			if envConfig.S3.DisableSSL {
 				config.S3.DisableSSL = envConfig.S3.DisableSSL
 			}
 			if len(envConfig.S3.ServiceLabel) > 0 {
 				config.S3.ServiceLabel = envConfig.S3.ServiceLabel
 			}
+			if len(envConfig.S3.ServiceName) > 0 {
+				config.S3.ServiceName = envConfig.S3.ServiceName
+			}
 			if len(envConfig.S3.BucketName) > 0 {
 				config.S3.BucketName = envConfig.S3.BucketName
+			}
+			if len(envConfig.S3.EncryptionKey) > 0 {
+				config.S3.EncryptionKey = envConfig.S3.EncryptionKey
 			}
 			for serviceName, serviceConfig := range envConfig.Services {
 				mergedServiceConfig := config.Services[serviceName]
@@ -141,6 +155,12 @@ func Get() *Config {
 				}
 				if serviceConfig.Retention.Files > 0 {
 					mergedServiceConfig.Retention.Files = serviceConfig.Retention.Files
+				}
+				if serviceConfig.DisableColumnStatistics {
+					mergedServiceConfig.DisableColumnStatistics = serviceConfig.DisableColumnStatistics
+				}
+				if len(serviceConfig.LocalBackupPath) > 0 {
+					mergedServiceConfig.LocalBackupPath = serviceConfig.LocalBackupPath
 				}
 				config.Services[serviceName] = mergedServiceConfig
 			}
@@ -160,6 +180,11 @@ func Get() *Config {
 		}
 		if len(os.Getenv("BACKMAN_PASSWORD")) > 0 {
 			config.Password = os.Getenv("BACKMAN_PASSWORD")
+		}
+
+		// use s3 encryption key from env if defined
+		if len(os.Getenv("BACKMAN_ENCRYPTION_KEY")) > 0 {
+			config.S3.EncryptionKey = os.Getenv("BACKMAN_ENCRYPTION_KEY")
 		}
 	})
 	return &config

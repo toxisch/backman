@@ -46,8 +46,10 @@ These here are the default values backman will use if not configured via JSON:
 	"logging_timestamp": false,
 	"disable_web": false,
 	"disable_metrics": false,
+	"unprotected_metrics": false,
 	"s3": {
 		"service_label": "dynstrg",
+		"encryption_key":"a_super_strong_key"
 	},
 	"services": {
 		...
@@ -80,12 +82,18 @@ Possible JSON properties:
 - `password`: optional, HTTP basic auth password
 - `disable_web`: optional, disable web interface and api
 - `disable_metrics`: optional, disable Prometheus metrics endpoint
+- `unprotected_metrics`: optional, disable HTTP basic auth protection for Prometheus metrics endpoint
 - `s3.service_label`: optional, defines which service label backman will look for to find the S3-compatible object storage
 - `s3.bucket_name`: optional, bucket to use on S3 storage, backman will use service-instance/binding-name if not configured
+- `s3.encryption_key`: optional, defines the key which will be used to encrypt and decrypt backups as they are stored on the S3 can also be passed as an environment variable with the name `BACKMAN_ENCRYPTION_KEY`
 - `services.<service-instance>.schedule`: optional, defines cron schedule for running backups
 - `services.<service-instance>.timeout`: optional, backman will abort a running backup/restore if timeout is exceeded
 - `services.<service-instance>.retention.days`: optional, specifies how long backman will keep backups on S3 at maximum for this service instance
 - `services.<service-instance>.retention.files`: optional, specifies how maximum number of files backman will keep on S3 for this service instance
+- `services.<service-instance>.disable_column_statistics`: optional / MySQL-specific, allows for disabling export of column statistics. Set to `true` to avoid issues with pre-8.0 versions of MySQL
+- `services.<service-instance>.local_backup_path`: optional / PostgreSQL-specific, path where to store backup files locally first before uploading them. Otherwise streams directly onto s3 if not specified.
+
+Note: Usage of `s3.encryption_key` is not backward compatible! Backups generated without or with a different encryption key cannot be downloaded or restored anymore.
 
 ## Metrics
 

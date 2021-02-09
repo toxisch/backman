@@ -3,6 +3,7 @@
 	"logging_timestamp": false,
 	"disable_web": false,
 	"disable_metrics": false,
+	"unprotected_metrics": false,
 	"username": "http_basic_auth_user_abc",
 	"password": "http_basic_auth_password_xyz",
 	"s3": {
@@ -16,7 +17,8 @@
 			"retention": {
 				"days": 60,
 				"files": 250
-			}
+			},
+			"local_backup_path": "./_fixtures/"
 		},
 		"my_mysql_db": {
 			"timeout": "35m"
